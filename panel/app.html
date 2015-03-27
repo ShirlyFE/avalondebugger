@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset='utf-8'/>
+    <style type="text/css">
+        html, body, .container {
+            height: 100%;
+        }
+        body {
+            font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+        }
+        ul, li {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+        .pane_left {
+            width: 60%;
+            height: 100%;
+            border-right: 1px solid #a3a3a3;
+        }
+        .pane_right {
+            width: 40%;
+            position: absolute;
+            top: 0;
+            left: 60%;
+        }
+
+        li {
+            position: relative;
+            padding: 3px 8px 3px 20px;
+        }
+        .banner {
+            background: #eeeeee;
+            color: #333;
+            font-size: 14px;
+            font-weight: 400;
+            border-bottom: 1px solid #a3a3a3;
+            margin: 0;
+            padding: 3px;
+        }
+        .controller {
+            margin: 10px 10px 10px 0;
+            padding: 10px 0 10px 40px;
+            border: 1px solid #ccc;
+        }
+        #model {
+            margin-top: 10px;
+        }
+        .label {
+            color: #4d4d4d;
+            padding: 0px 8px 0px 22px;
+        }
+        .label:hover {
+            color: #53A0FD;
+        }
+        .a-string > .label {
+            background: url(./icons/string.png) no-repeat 4px 50%;
+        }
+        .a-number > .label {
+            background: url(./icons/number.png) no-repeat 4px 50%;
+        }   
+        .a-boolean > .label {
+            background: url(./icons/boolean.png) no-repeat 4px 50%;
+        }
+        .a-array > .label {
+            background: url(./icons/array.png) no-repeat 4px 50%;
+        }
+        .a-object > .label {
+            background: url(./icons/object.png) no-repeat 4px 50%;
+        }
+        .a-function > .label {
+            background: url(./icons/function.png) no-repeat 4px 50%;
+        }
+        .a-null > .label {
+            background: url(./icons/null.png) no-repeat 4px 50%;
+        }
+        .a-undefined > .label {
+            background: url(./icons/undefined.png) no-repeat 4px 50%;
+        }
+        .a-null > .value, .a-undefined > .value {
+            color: gray;
+        }
+        .a-string > .value, .a-string > .value input{
+            color: green;
+            border-width: 0;
+        }
+        .a-number > .value, .a-number > .value input{
+            color: red;
+            border-width: 0;
+        }   
+        .a-boolean > .value, .a-boolean > .value input {
+            color: blue;
+            border-width: 0;
+        }
+        .label.unwatch {
+            text-decoration: line-through;
+        }
+        .a-caret {
+            background: url(./icons/caret.png) no-repeat 0 0;
+            position: absolute;
+            left: 0px;
+            top: 3px;
+            height: 16px;
+            width: 16px;
+            display: block;
+        }
+        .a-caret-open {
+            background-position: 0 -16px;
+        }
+        .hide {
+            display: none;
+        }
+        .vlist {
+            margin: 10px;
+        }
+        .vlist li {
+            padding: 42px 10px 10px 10px;
+            border: 1px solid #ccc;
+            position: relative;
+        }
+        .vlist h2 {
+            font-weight: 500;
+        }
+        li.a-li-collapse {
+            padding: 32px 10px 0 10px;
+        }
+        .vlist .leaf {
+            padding: 32px 10px 0 10px;
+        }
+        .vname {
+            padding: 0;
+            margin: 0;
+            line-height: 30px;
+            height: 30px;
+            background: rgb(248, 248, 248);
+            border: 1px solid rgb(233, 233, 233);
+            border-left-width: 0;
+            border-right-width: 0;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            top: 0;
+            text-indent: 1em;
+        }
+        .vname:hover, .a-active {
+            color: white;
+            background: linear-gradient(-179deg, #82beeb 0%, #5290d7 100%);
+            text-shadow: -1px -1px 0 #5290d7, 1px 1px 0 #82beeb;
+            border-top: 1px solid #6EA9E1  !important;
+            border-bottom: 1px solid #4881C6  !important;
+        }
+        .vname .a-caret {
+            top: 8px;
+            background-position: 0 -16px;
+        }
+        .vname:hover .a-caret {
+            background-position: -16px -16px;
+        }
+        
+        .a-collapse .a-caret {
+            background-position: 0 0;
+        }
+        .a-collapse:hover .a-caret {
+            background-position: -16px 0;
+        }
+        .a-active.vname .a-caret {
+            background-position: -16px -16px;
+        }
+        .a-active.a-collapse .a-caret {
+            background-position: -16px 0;
+        } 
+    </style>
+    <script src="avalon.js"></script>
+</head>
+<body>
+    <div ms-controller='app' class='container'>
+        <aside class='pane_left'>
+            <h1 class='banner'>VM tree</h1>
+            <ul ms-click='getVMId()' class='vlist' ms-click-1='toggleCollapse'>
+                <li ms-repeat-node='vmtree' ms-class='leaf:!node.vmtree.size()' data-repeat-rendered='renderedCallback'>
+                    <h2 ms-attr-vmid='node.name' ms-attr-identifier='node.identifier' ms-on-mouseenter='mouseenterCallback' ms-on-mouseleave='mouseleaveCallback' class='vname'><span class='a-caret' ms-if='node.vmtree.size()'></span>{{node.name}}</h2>
+                    <ul ms-if='node.vmtree.size()'>
+                        <li ms-repeat-node='node.vmtree' ms-class='leaf:!node.vmtree.size()'>
+                            {{treeView|html}}
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </aside>
+        <div class='pane_right' style='border-left: 1px solid #a3a3a3;'>
+            <h1 class='banner'>vmodel</h1>
+            <div id='model'>
+                
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
