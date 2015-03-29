@@ -1,6 +1,17 @@
 (function() {
     var controllerEles = getControllerEles(),
-        mask = createMaskElement()
+        mask = createMaskElement(),
+        eventProxyElement = document.getElementById('__avalonVmodelElement'),
+        customEvent = document.createEvent('Event')
+
+    customEvent.initEvent('avalonVmodel', true, true)
+    // 当开发控制台关闭时需要清掉开发者工具注入的dom和js，过程是：background监听avalon devtool的disconnect连接状态，发现连接断开则向content script发消息通知，content script再通过eventProxyElement发送clearInjected消息，在hint.jsZ中接收此clearInjected消息清除注入的mask，删掉vmodel _tmp然后告诉content script清理完成，由content script完成剩下的清理工作
+    eventProxyElement.addEventListener('clearInjected', function () {
+        mask.parentNode.removeChild(mask)
+        delete avalon.vmodels._tmp
+        eventProxyElement.innerText = 'clearOk'
+        eventProxyElement.dispatchEvent(customEvent)
+    })
 
     var __VM = avalon.define('_tmp', function(vm) {
         vm.$skipArray = ['mouseoverid', 'vmid']
@@ -35,13 +46,13 @@
             setMaskPosition(vmId, mouseoverIdentifition)
         }
     })
+    avalon.scan(eventProxyElement, __VM)
 
     function displayObj (vmObj) {
         var obj = vmObj.$model ? vmObj.$model : vmObj,
             displayObj = {},
             funcReg = /^(function\s*[a-zA-Z0-9_]*\([a-zA-Z0-9_var,\s]*\))\s*\{/
-        console.log('displayObj arguments vmObj')
-        console.log(vmObj)
+
         for (var i in obj) {
             var item = obj[i],
                 type = avalon.type(item),
@@ -77,28 +88,13 @@
                     displayObjI.val = avalon.filters.escape(item)
             }
         }
-        console.log('displayObj')
-        console.log(displayObj)
         return displayObj
     }
-    var eventProxyElement = document.getElementById('__avalonVmodelElement')
-    avalon.scan(eventProxyElement, __VM)
-    var customEvent = document.createEvent('Event')
-    customEvent.initEvent('avalonVmodel', true, true)
-
     function sendMessage (obj, messageType) {
         obj.__messageType = messageType
         eventProxyElement.innerText = JSON.stringify(obj)
         eventProxyElement.dispatchEvent(customEvent)
     }
-
-    eventProxyElement.addEventListener('clearInjected', function () {
-        mask.parentNode.removeChild(mask)
-        delete avalon.vmodels._tmp
-        eventProxyElement.innerText = 'clearOk'
-        eventProxyElement.dispatchEvent(customEvent)
-    })
-
     function getControllerEles() {
         var elements = document.getElementsByTagName('*'),
             avalonElements = []
