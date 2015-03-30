@@ -12,7 +12,7 @@
                 })
             }
         }
-
+    bglog(chrome.devtools.panels)
     var appVM = avalon.define('app', function(vm) {
         vm.$skipArray = ['vmid']
         vm.debugMode = false
