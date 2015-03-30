@@ -158,8 +158,6 @@
 
     // 监听background页面发送来的信息
     port.onMessage.addListener(function(msg) {
-        bglog('background发给devtool的消息，message ：')
-        bglog(msg)
         switch(msg.name) {
             case 'waiting':
                 appVM.tip = '在panel中提示用户正在等待页面解析'

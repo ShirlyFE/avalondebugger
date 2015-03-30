@@ -31,7 +31,6 @@
     }
 
     function injectAvalonCode() {
-        console.log('injectAvalonCode')
         var __VM = avalon.define('_tmp', function(vm) {
             vm.$skipArray = ['mouseoverid', 'vmid']
             vm.vmid = ''

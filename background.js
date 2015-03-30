@@ -13,8 +13,6 @@
     chrome.tabs.onUpdated.addListener(handleTabUpdate)
 
     function handleContentScriptMessage (message, sender, sendResponse) {
-        console.log('content script 发给background的消息，argument是：')
-        console.log(arguments)
         if (sender.tab) {
             var tabId = sender.tab.id,
                 port = panelPorts[tabId]
@@ -86,13 +84,6 @@
         devToolsPort.onMessage.addListener(registerInspectedTabId)
         
         function registerInspectedTabId(message) {
-            console.log('devtool 发给background的消息， message is：')
-            console.log(message)
-            console.log('devtool 发消息来时 时panelPorts、panelFrames、panelValon、panelDebugMode')
-            console.log(panelPorts)
-            console.log(panelFrames)
-            console.log(panelAvalon)
-            console.log(panelDebugMode)
             switch(message.name) {
                 case 'identification':
 
@@ -139,12 +130,6 @@
     function handleTabUpdate(updatedTabId, changeInfo, sender) {
         var debugModeObj = panelDebugMode[updatedTabId],
             port = panelPorts[updatedTabId]
-        console.log('tab updated, arguments')
-        console.log(arguments)
-        console.log(panelPorts)
-        console.log(panelDebugMode)
-        console.log(panelFrames)
-        console.log(panelAvalon)
         // the event is emitted a second time when the update is complete, but we only need the first one.
         if (changeInfo.status == 'loading') {
             var url = sender.url,

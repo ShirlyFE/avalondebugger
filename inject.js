@@ -18,8 +18,6 @@ new (function ContentScript() {
     // Receives messages from the background and redirects them to the inspected page.
     this.listenToBackground = function() {
         chrome.runtime.onMessage.addListener((function(message) {
-            console.log('来自backgroun的消息，消息内容是：')
-            console.log(message)
             switch(message.name) {
                 case 'avalonpaneldisconnect':
                     this.clearInjectedContent()
@@ -128,9 +126,7 @@ new (function ContentScript() {
             var eventData = JSON.parse(eventProxyElement.innerText),
                 messageType = eventData.name,
                 message = eventData.val
-            console.log('hint js 发送给content script的消息')
-            console.log('eventData is : ')
-            console.log(eventData)
+
             switch(messageType) {
                 case 'avalon':
                     chrome.extension.sendMessage({
