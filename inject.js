@@ -1,54 +1,46 @@
-var contentScript = new (function() {
+new (function ContentScript() {
     this.frameURL = window.location.href
-    this.isTopFrame = (window.parent == window)
-    this.vmtree = []
     this.injectedElement = []
-    this.avalonInUse = false
-    console.log('this.frameURL : ')
-    console.log(this.frameURL)
+    this.eventProxyElement = null
+
     this.initialize = function() {
+        this.sendFrameUrl()
         this.listenToBackground()
-        console.log('this.isTopFrame : ' + this.isTopFrame)
-
-        if (this.isTopFrame) this.ifTopFrame()
+        this.injectExtensionCode()
+        this.listenToInjectedMessage()
     }
-
+    this.sendFrameUrl = function() {
+        chrome.runtime.sendMessage({
+            name: 'frameUrl',
+            frameURL: this.frameURL
+        })
+    }
     // Receives messages from the background and redirects them to the inspected page.
     this.listenToBackground = function() {
         chrome.runtime.onMessage.addListener((function(message) {
-            console.log('background message comming, and arguments : ')
-            console.log(arguments)
+            console.log('来自backgroun的消息，消息内容是：')
+            console.log(message)
             switch(message.name) {
-                case 'connect':
-                    this.ifTopFrame()
-                break
                 case 'avalonpaneldisconnect':
                     this.clearInjectedContent()
                 break
                 case 'vmtree':
                     if (message.frameURL != this.frameURL) return
-                    if (this.vmtree.length) {
-                        chrome.runtime.sendMessage({
-                            name: 'vmtree',
-                            pageInfo: {
-                                tree: this.vmtree, 
-                                avalon: this.avalonInUse
-                            }
-                        })
-                    } else {
-                        this.ifTopFrame()
-                    }
+                    // if (message.avalon) {
+                        this.parseVM()  
+                    // } else {
+                    //     var customEvent = document.createEvent('Event'),
+                    //         eventProxyElement = this.eventProxyElement
+
+                    //     customEvent.initEvent('avalon', true, true)
+                    //     eventProxyElement.dispatchEvent(customEvent)
+                    // }
                 break
-                // 得加上页面如果没有用avalon时的处理
             }
         }).bind(this))
     }
 
-    // Code to be executed only if this is the top frame content script!
-    this.ifTopFrame = function() {
-        // Sends a message to the background when the DOM of the inspected page is ready
-        // (typically used by the panel to check if the backbone agent is on the page).
-        console.log('DOMContentLoaded : ')
+    this.parseVM = function() {
         var doc = document.body.getElementsByTagName('*'),
             docLen = doc.length,
             timer = null,
@@ -65,19 +57,22 @@ var contentScript = new (function() {
                     在content script中只可以操作页面dom但是无法访问页面的js,像下面这样访问页面avalon是不可能的
                     avalonInUse = window.avalon && window.avalon.version && window.avalon.bindingHandlers ? true : false
                 */
-                console.log(document.body.innerHTML)
                 that.anaysisVmodel(document.body, vmtree)
                 /* 
                     message最终会转换为json串，在这里给vmtree设置toggle方法毫无意义，所以将vmtree的信息完善工作放在popup js里去做
                     本来是要根据用户的窗口大小来决定popup的窗口大小的，但是发现chrome给popup设定了width最大800和height最大600的限制，超过大小会显示滚动条，因此就直接显式的设置了popup的width和height
                 */
-                that.vmtree = vmtree
-                console.log('vmtree : ')
-                console.log(vmtree)
-                
-                that.pageReady()
-                if (that.vmtree.length) {
-                    that.getAvalonVmodel()
+                if (vmtree.length) {
+                    chrome.runtime.sendMessage({
+                        name: 'vmtree',
+                        pageInfo: {
+                            tree: vmtree
+                        }
+                    })
+                } else {
+                    chrome.runtime.sendMessage({
+                        name: 'parseError'
+                    })
                 }
             } else {
                 docLen = doc.length
@@ -85,27 +80,15 @@ var contentScript = new (function() {
             }
         }
     }
-    this.pageReady = function() {
-        console.log('pageReady')
-        console.log('this.frameURL is :')
-        console.log(this.frameURL)
-        chrome.runtime.sendMessage({
-            name: 'ready',
-            frameURL: this.frameURL
-        })
-    }
 
-/*
- * description: 遍历页面元素获取页面vmodel的嵌套关系
- */
+    /*
+     * description: 遍历页面元素获取页面vmodel的嵌套关系
+     */
     this.anaysisVmodel = function (parent, vmtree) {
         var vmodel = parent.getAttribute('avalonctrl'),
             subVm = vmtree,
             identifier = ''
         if (vmodel) {
-            if (!this.avalonInUse) {
-                this.avalonInUse = true
-            }
             identifier = 'vm_' + String(Math.random()).substr(2)
             parent.setAttribute('identifier', identifier)
             subVm = {name: vmodel, vmtree: [], identifier: identifier}
@@ -120,48 +103,70 @@ var contentScript = new (function() {
             }
         }
     }
+    // 向inspected page注入extension需要的dom和js
+    this.injectExtensionCode = function() {
+        var html = document.getElementsByTagName('html')[0],
+            eventProxyElement = document.createElement('div'),
+            script = window.document.createElement('script')
 
-    // 获取VM对象
-    this.getAvalonVmodel = function () {
-        var html = document.getElementsByTagName('html')[0];
-        var eventProxyElement = document.createElement('div'),
-            that = this
-        
         eventProxyElement.id = '__avalonVmodelElement'
         eventProxyElement.style.display = 'none'
         html.appendChild(eventProxyElement)
+
         eventProxyElement.setAttribute('ms-attr-vmid', 'vmid')
-        // inject into the application context from the content script context
-
-        var script = window.document.createElement('script')
         script.src = chrome.extension.getURL('hint.js')
-        this.injectedElement = [script, eventProxyElement]
-        eventProxyElement.addEventListener('avalonVmodel', function () {
-            var eventData = eventProxyElement.innerText,
-                messageType = ''
-            if (eventData === 'clearOk') {
-                var injectedElement = that.injectedElement
-                for (var i = 0, len = injectedElement.length; i < len; i++) {
-                    var element = injectedElement[i]
-                    element.textContent = element.innerHTML = ''
-                    element.parentNode.removeChild(element)
-                }
-                return
-            } 
-            messageType = JSON.parse(eventData).__messageType
-            console.log('messageType : '+messageType)
-
-            chrome.extension.sendMessage({
-                name: messageType,
-                vmodel: eventData
-            })
-        })
         html.appendChild(script)
+
+        this.eventProxyElement = eventProxyElement
+        this.injectedElement = [script, eventProxyElement]
+    }
+    this.listenToInjectedMessage = function() {
+        var eventProxyElement = this.eventProxyElement,
+            that = this
+        eventProxyElement.addEventListener('avalonVmodel', function () {
+
+            var eventData = JSON.parse(eventProxyElement.innerText),
+                messageType = eventData.name,
+                message = eventData.val
+            console.log('hint js 发送给content script的消息')
+            console.log('eventData is : ')
+            console.log(eventData)
+            switch(messageType) {
+                case 'avalon':
+                    chrome.extension.sendMessage({
+                        name: 'avalon',
+                        avalon: message
+                    })
+                break
+                case 'clearOk':
+                    var injectedElement = that.injectedElement
+                    for (var i = 0, len = injectedElement.length; i < len; i++) {
+                        var element = injectedElement[i]
+                        element.textContent = element.innerHTML = ''
+                        element.parentNode.removeChild(element)
+                    }
+                break
+                // case 'avalonAgain':
+                //     if (message) {
+                //         that.parseVM()
+                //     } else {
+                //         chrome.extension.sendMessage({
+                //             name: 'avalonNotInUse'
+                //         })
+                //     }
+                // break
+                default: 
+                    chrome.extension.sendMessage({
+                        name: messageType,
+                        vmodel: message
+                    })
+            }
+        })
     }
 
     this.clearInjectedContent = function() {
         var customEvent = document.createEvent('Event'),
-            eventProxyElement = this.injectedElement[1]
+            eventProxyElement = this.eventProxyElement
 
         customEvent.initEvent('clearInjected', true, true)
         eventProxyElement.innerText = 'clearInjectedContent'
@@ -169,3 +174,5 @@ var contentScript = new (function() {
     }
     this.initialize()
 })()
+    
+

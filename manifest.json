@@ -8,12 +8,6 @@
     "tabs",
     "<all_urls>"
   ],
-  "icons": {
-    "16": "img/webstore-icon.png",
-    "48": "img/webstore-icon.png",
-    "128": "img/webstore-icon.png"
-  },
-
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

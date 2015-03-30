@@ -1,6 +1,7 @@
 (function () {
     var model = document.getElementById('model'), // model属性列表的container
         activeElement = null, // 保存着当前查看vmodel的id的元素
+        errorCount = 0, // 页面vmtree解析错误(没有获取到vmtree)次数
         foldObjectProxy = {}, // 当vmodel的属性是个对象时，每次展开都会去inspected page获取此属性对象的值，因为整个涉及到一个通信(请求数据、获取数据)的过程，因此需要在通信前保存"现场"，以便在成功获取到属性对象时能顺利获取请求数据前的“现场”信息
         port = chrome.extension.connect({name: 'avalondevtoolspanel'}), // 此连接是个与background始终保持通信状态的长连接，必须由此panel发起，因为background无法知道devtool何时打开
         bglog = function(obj) { // 为了调试avalon panel，将信息发给background来调试
@@ -11,8 +12,12 @@
                 })
             }
         }
+
     var appVM = avalon.define('app', function(vm) {
         vm.$skipArray = ['vmid']
+        vm.debugMode = false
+        vm.waiting = true
+        vm.tip = '<a ms-click="startDebug" href="#">hello, dear! Need debug ? yes ! click me to start debugging. Good work!</a>'
         vm.treeView = "<h2 ms-attr-vmid='node.name' ms-attr-identifier='node.identifier' ms-on-mouseenter='mouseenterCallback' ms-on-mouseleave='mouseleaveCallback' class='vname'><span ms-if='node.vmtree.size()' class='a-caret'></span>{{node.name}}</h2><ul ms-if='node.vmtree.size()'><li ms-repeat-node='node.vmtree' ms-class='leaf:!node.vmtree.size()'>{{treeView|html}}</li></ul>"
         vm.vmtree = []
         vm.vmid = ''
@@ -28,6 +33,15 @@
                 // devtools.inspectedWindow.eval()方法用来向inspected page注入脚本
                 chrome.devtools.inspectedWindow.eval('avalon.vmodels._tmp.vmid="'+ vmid +'";avalon.vmodels._tmp.identifier="'+ identifier +'"')
             }
+        }
+        vm.startDebug = function(event) {
+            event.preventDefault()
+            appVM.debugMode = true
+            chrome.devtools.inspectedWindow.reload()
+            port.postMessage({
+                name: 'debugMode',
+                debug: true
+            })
         }
         // 展开或者收起VM树
         vm.toggleCollapse = function(event) {
@@ -75,6 +89,7 @@
             chrome.devtools.inspectedWindow.eval('avalon.vmodels._tmp.mouseoverid="";avalon.vmodels._tmp.mouseoverIdentifition=""')
         }
     })
+
 
     var modelVM = avalon.define('model', function(vm) {
         // 通过在avalon devtool的对应vmodel属性上修改值来调试inspected page
@@ -140,21 +155,40 @@
         name: 'identification',
         data: chrome.devtools.inspectedWindow.tabId
     })
-    // 获取页面VM的嵌套树
-    port.postMessage({
-        name: 'vmtree'
-    })
+
     // 监听background页面发送来的信息
     port.onMessage.addListener(function(msg) {
+        bglog('background发给devtool的消息，message ：')
+        bglog(msg)
         switch(msg.name) {
             case 'waiting':
-                console.log('在panel中提示用户正在等待页面解析')
+                appVM.tip = '在panel中提示用户正在等待页面解析'
+            break
+            // case 'avalonNotInUse':
+            //     appVM.tip = 'hey, man! you do not even use AVALON. Are you kidding?'
+            // break
+            case 'avalon':
+                if (!msg.avalon) {
+                    appVM.debugMode = false
+                    appVM.waiting = true
+                    appVM.vmtree = []
+                    model.innerHTML = model.textContent = ''
+                    errorCount = 0
+                    appVM.tip = 'hey, man! you do not even use AVALON. Are you kidding?'
+                } else {
+                    appVM.tip = '<a ms-click="startDebug" href="#">hello, dear! Need debug ? yes ! click me to start debugging. Good work!</a>'
+                    avalon.scan(document.body, appVM)
+                }
             break
             case 'vmtree': // 页面VM tree
+                errorCount = 0
+                appVM.waiting = false
                 appVM.vmtree = msg.pageInfo.tree
             break 
             case 'vmodel': // 获取到的vmodel的信息
-                model.innerHTML = modelView(JSON.parse(msg.vmodel), true, '')
+                var view = modelView(msg.vmodel, true, '')
+                !model && (model = document.getElementById('model'))
+                model.innerHTML = view
                 avalon.scan(model, modelVM)
             break
             case 'nestObj': // 获取到vmodel上对象属性的信息
@@ -163,7 +197,7 @@
                     $this = foldObjectProxy.$this,
                     objSignEle = foldObjectProxy.objSignEle,
                     li = foldObjectProxy.li,
-                    vmodel = JSON.parse(msg.vmodel),
+                    vmodel = msg.vmodel,
                     view = modelView(vmodel, watch, name, vmodel.__arr),
                     viewFragment = avalon.parseHTML(view).firstChild
 
@@ -172,13 +206,33 @@
                 li.appendChild(viewFragment)
                 avalon.scan(viewFragment, modelVM)
             break
-            case 'ready':
             case 'updated': // 当inspected 页面信息解析完成或者用户通过刷新浏览器等方式更新了tab页时请求vmtree重新更新avalon devtool的面板信息
                 appVM.vmtree = []
                 model.innerHTML = model.textContent = ''
-                port.postMessage({
-                    name: 'vmtree'
-                })
+                if (appVM.debugMode) {
+                    port.postMessage({
+                        name: 'vmtree'
+                    })
+                }
+            break
+            case 'parseError':
+                errorCount += 1
+                if (errorCount > 5) {
+                    appVM.tip = 'hey，哪里出错了, 貌似页面视图没有被avalon解析'
+                } else {
+                    port.postMessage({
+                        name: 'vmtree'
+                    })
+                }
+            break
+            case 'stopDebug':
+                appVM.debugMode = false
+                appVM.waiting = true
+                errorCount = 0
+                appVM.vmtree = []
+                model.innerHTML = model.textContent = ''
+                appVM.tip = '<a ms-click="startDebug" href="#">hello, dear! Need debug ? yes ! click me to start debugging. Good work!</a>'
+                avalon.scan(document.body, appVM)
             break
         }
     })

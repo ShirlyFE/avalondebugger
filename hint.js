@@ -9,44 +9,65 @@
     eventProxyElement.addEventListener('clearInjected', function () {
         mask.parentNode.removeChild(mask)
         delete avalon.vmodels._tmp
-        eventProxyElement.innerText = 'clearOk'
-        eventProxyElement.dispatchEvent(customEvent)
+        sendMessage(true, 'clearOk')
     })
+    // eventProxyElement.addEventListener('avalon', function () {
+    //     avalonUseJudge('avalonAgain')
+    // })
 
-    var __VM = avalon.define('_tmp', function(vm) {
-        vm.$skipArray = ['mouseoverid', 'vmid']
-        vm.vmid = ''
-        vm.name = ''
-        vm.identifier = ''
-        vm.mouseoverid = ''
-        vm.mouseoverIdentifition = ''
-    })
+    if (!avalonUseJudge('avalon')) return false
     
-    __VM.$watch('identifier', function(identifier) {
-        if (!identifier) return
-        var vmId = __VM.vmid,
-            parseVmodel = displayObj(avalon.vmodels[vmId])
-        sendMessage(parseVmodel, 'vmodel')
-        __VM.identifier = ''
-    })
-    __VM.$watch('name', function(name) {
-        if (!name) return
-        var vmodel = avalon.vmodels[__VM.vmid],
-            vmObj = eval('vmodel' + name),
-            parseVmodel = displayObj(vmObj),
-            arr = avalon.type(vmObj) === 'array'
-        parseVmodel.__arr = arr
-        sendMessage(parseVmodel, 'nestObj')
-    })
-    __VM.$watch('mouseoverIdentifition', function(mouseoverIdentifition) {
-        var vmId = __VM.mouseoverid
-        if (!mouseoverIdentifition) {
-            mask.style.cssText = 'display: none;'
-        } else {
-            setMaskPosition(vmId, mouseoverIdentifition)
+    function avalonUseJudge(type) {
+        try {
+            if (avalon && avalon.version && avalon.bindingExecutors && avalon.bindingHandlers) {
+                sendMessage(true, type)
+                injectAvalonCode()
+                return true
+            }
+        } catch(e) {
+            sendMessage(false, type)
+            return false
         }
-    })
-    avalon.scan(eventProxyElement, __VM)
+    }
+
+    function injectAvalonCode() {
+        console.log('injectAvalonCode')
+        var __VM = avalon.define('_tmp', function(vm) {
+            vm.$skipArray = ['mouseoverid', 'vmid']
+            vm.vmid = ''
+            vm.name = ''
+            vm.identifier = ''
+            vm.mouseoverid = ''
+            vm.mouseoverIdentifition = ''
+        })
+        
+        __VM.$watch('identifier', function(identifier) {
+            if (!identifier) return
+            var vmId = __VM.vmid,
+                parseVmodel = displayObj(avalon.vmodels[vmId])
+            sendMessage(parseVmodel, 'vmodel')
+            __VM.identifier = ''
+        })
+        __VM.$watch('name', function(name) {
+            if (!name) return
+            var vmodel = avalon.vmodels[__VM.vmid],
+                vmObj = eval('vmodel' + name),
+                parseVmodel = displayObj(vmObj),
+                arr = avalon.type(vmObj) === 'array'
+            parseVmodel.__arr = arr
+            sendMessage(parseVmodel, 'nestObj')
+        })
+        __VM.$watch('mouseoverIdentifition', function(mouseoverIdentifition) {
+            var vmId = __VM.mouseoverid
+            if (!mouseoverIdentifition) {
+                mask.style.cssText = 'display: none;'
+            } else {
+                setMaskPosition(vmId, mouseoverIdentifition)
+            }
+        })
+        avalon.scan(eventProxyElement, __VM)
+    }
+    
 
     function displayObj (vmObj) {
         var obj = vmObj.$model ? vmObj.$model : vmObj,
@@ -90,9 +111,8 @@
         }
         return displayObj
     }
-    function sendMessage (obj, messageType) {
-        obj.__messageType = messageType
-        eventProxyElement.innerText = JSON.stringify(obj)
+    function sendMessage (message, messageType) {
+        eventProxyElement.innerText = JSON.stringify({name: messageType, val: message})
         eventProxyElement.dispatchEvent(customEvent)
     }
     function getControllerEles() {

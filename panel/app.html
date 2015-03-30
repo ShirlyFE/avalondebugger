@@ -5,8 +5,10 @@
     <link rel="stylesheet" type="text/css" href="app.css">
     <script src="avalon.js"></script>
 </head>
-<body>
-    <div ms-controller='app' class='container'>
+<body ms-controller='app'>
+    <h3 ms-if='!debugMode && waiting' style='margin-top: 30px; text-align: center'>{{tip|html}}</h3>
+    <div ms-if='debugMode && !waiting' class='container'>
+
         <aside class='pane_left'>
             <h1 class='banner'>VM tree</h1>
             <ul ms-click='getVMId()' class='vlist' ms-click-1='toggleCollapse'>
