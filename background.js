@@ -13,14 +13,16 @@
     chrome.tabs.onUpdated.addListener(handleTabUpdate)
 
     function handleContentScriptMessage (message, sender, sendResponse) {
+        var messageName = message.name
+
+        if (messageName === 'bglog') { // 用来调试avalon devtool
+            console.log(message.obj)
+        }
         if (sender.tab) {
             var tabId = sender.tab.id,
                 port = panelPorts[tabId]
 
-            switch(message.name) {
-                case 'bglog': // 来自avalon dev panel的log请求
-                    console.log(message.obj)
-                break
+            switch(messageName) {
                 case 'vmtree': // 来自inject.js中的页面avalon vmodel解析数据
                     port.postMessage({
                         name: 'vmtree',
@@ -30,7 +32,7 @@
                 case 'nestObj':
                 case 'vmodel':
                     port.postMessage({
-                        name: message.name,
+                        name: messageName,
                         vmodel: message.vmodel
                     })
                 break
