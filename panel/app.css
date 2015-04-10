@@ -43,7 +43,9 @@ li {
     border: 1px solid #ccc;
 }
 #model {
-    margin-top: 10px;
+    padding-top: 10px;
+    overflow-y: auto;
+    -webkit-box-sizing: border-box;
 }
 .label {
     color: #4d4d4d;
@@ -110,8 +112,10 @@ li {
     display: none;
 }
 .vlist {
-    margin: 10px;
-}
+    padding: 10px;
+    overflow-y: auto;
+    -webkit-box-sizing: border-box;
+}   
 .vlist li {
     padding: 42px 10px 10px 10px;
     border: 1px solid #ccc;

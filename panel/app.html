@@ -11,7 +11,7 @@
 
         <aside class='pane_left'>
             <h1 class='banner'>VM tree</h1>
-            <ul ms-click='getVMId()' class='vlist' ms-click-1='toggleCollapse'>
+            <ul ms-click='getVMId()' class='vlist' ms-click-1='toggleCollapse' ms-css-height='contentHeight'>
                 <li ms-repeat-node='vmtree' ms-class='leaf:!node.vmtree.size()'>
                     <h2 ms-attr-vmid='node.name' ms-attr-identifier='node.identifier' ms-on-mouseenter='mouseenterCallback' ms-on-mouseleave='mouseleaveCallback' class='vname'><span class='a-caret' ms-if='node.vmtree.size()'></span>{{node.name}}</h2>
                     <ul ms-if='node.vmtree.size()'>
@@ -24,7 +24,7 @@
         </aside>
         <div class='pane_right' style='border-left: 1px solid #a3a3a3;'>
             <h1 class='banner'>vmodel</h1>
-            <div id='model'>
+            <div id='model' ms-css-height='contentHeight'>
                 
             </div>
         </div>

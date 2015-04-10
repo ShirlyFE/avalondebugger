@@ -16,6 +16,7 @@
         vm.$skipArray = ['vmid']
         vm.debugMode = false
         vm.waiting = true
+        vm.contentHeight = document.body.clientHeight - document.getElementsByClassName('banner')[0].offsetHeight
         vm.tip = '<a ms-click="startDebug" href="#">hello, dear! Need debug ? yes ! click me to start debugging. Good work!</a>'
         vm.treeView = "<h2 ms-attr-vmid='node.name' ms-attr-identifier='node.identifier' ms-on-mouseenter='mouseenterCallback' ms-on-mouseleave='mouseleaveCallback' class='vname'><span ms-if='node.vmtree.size()' class='a-caret'></span>{{node.name}}</h2><ul ms-if='node.vmtree.size()'><li ms-repeat-node='node.vmtree' ms-class='leaf:!node.vmtree.size()'>{{treeView|html}}</li></ul>"
         vm.vmtree = []
