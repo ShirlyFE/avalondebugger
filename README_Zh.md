@@ -20,7 +20,7 @@
 
 成功安装**avalon debugger**之后，打开一个使用avalon的页面，**F12**打开chrome的调试控制台找到**Avalon**
 
-![avalon debugger tab](./img/screenshots/avalonDebugger.png "avalon debugger tab")
+![avalon debugger tab](./img/screenshots/avalonDebugger.png "avalon debugger tab"){width=500px}
 
 切换到Avalon panel，提示我们开启avalon调试，**点击链接开启avalon调试功能**
 
