@@ -1,5 +1,7 @@
 # Avalon Debugger
 
+[中文文档](./README_Zh.md)
+
 Chrome Developer Tools extension for debugging Avalon.js applications.
 
 Install from source
