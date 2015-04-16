@@ -90,6 +90,26 @@
         vm.mouseleaveCallback = function() {
             chrome.devtools.inspectedWindow.eval('avalon.vmodels._tmp.mouseoverid="";avalon.vmodels._tmp.mouseoverIdentifition=""')
         }
+        vm.printFunc = function(event) { // 将function发送到控制台供用户调用
+            var target = event.target,
+                $target = avalon(target)
+
+            if (target.tagName.toLowerCase() !== 'li') {
+                $target = avalon(target.parentNode) 
+            }
+            if ($target.hasClass('a-function')) {
+                var funcName = $target.attr('funcname'),
+                    vm = 'avalon.vmodels["'+appVM.vmid+'"]',
+                    func = vm + '["'+funcName+'"]'
+
+                var printInfo = [
+                        'console.group("'+funcName+'")',
+                        'console.log(($f = '+func+') && ($f = $f.bind('+vm+')) && '+func+')',
+                        'console.log("%c如需操作方法'+funcName+'，可直接使用$f([param,...])", "color: yellow;background: #f22;font-size:16px;")',
+                        'console.groupEnd()']
+                chrome.devtools.inspectedWindow.eval(printInfo.join(';'))
+            }
+        }
     })
 
 
@@ -164,9 +184,6 @@
             case 'waiting':
                 appVM.tip = '在panel中提示用户正在等待页面解析'
             break
-            // case 'avalonNotInUse':
-            //     appVM.tip = 'hey, man! you do not even use AVALON. Are you kidding?'
-            // break
             case 'avalon':
                 if (!msg.avalon) {
                     appVM.debugMode = false
@@ -265,7 +282,7 @@
                         view += '<li class="' + classType + '">' + labelStr + '<span class="value">' + inputStr + '</span>'
                     break
                     case 'function':
-                        view += '<li class="a-function">' + labelStr + '<span>' + proVal + '</span>'
+                        view += '<li class="a-function" funcname="'+pro+'">' + labelStr + '<span>' + proVal + '</span>'
                     break
                     case 'number':
                         view += '<li class="a-number">' + labelStr + '<span class="value">' + inputStr + '</span>'
