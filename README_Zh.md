@@ -6,7 +6,7 @@
 
 ## 安装
 
-从github上[下载avalon debugger](https://github.com/shirlyLoveU/avalondebugger/archive/master.zip)解压
+从github上下载[avalon debugger](https://github.com/shirlyLoveU/avalondebugger/archive/master.zip)解压
 
 打开chrome浏览器，地址栏输入：**chrome://extensions**打开chrome的扩展程序
 
