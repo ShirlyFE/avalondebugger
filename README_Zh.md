@@ -12,7 +12,7 @@
 
 勾选右上角的**开发者模式**
 
-将解压的avalon debugger目录文件拖放到扩展程序页即完成了安装
+将解压的avalon debugger目录文件拖放到扩展程序页即可完成安装
 
 ![avalon install screenshots](./img/screenshots/avalonInstall.png "avalon install screenshots")
 
@@ -36,9 +36,9 @@
 
 ![avalon VM scope](./img/screenshots/avalonVMScope.png "avalon VM scope")
 
-点击对应的VM会在Avalon panel右侧的vmodel区域展示对应VM具有的数据结构，其中不可监控的数据属性用删除线标志，可监控的number、boolean、string类型属性可直接调试，且不同的数据类型通过不同的color和icon标志
+点击对应的VM会在Avalon panel右侧的vmodel区域展示对应VM具有的数据结构，其中不可监控的数据属性用**删除线**标志，可监控的number、boolean、string类型属性可**直接调试**，且不同的数据类型通过不同的**color**和**icon**标志
 
-以test vmodel为例，test的定义如下：
+以**test** vmodel为例，**test**的定义如下：
 
 ```javascript
   avalon.define('test', function(vm) {
@@ -63,21 +63,21 @@
 
 ![unwatch property](./img/screenshots/unwatchProperty.png "unwatch property")
 
-对于可监控的age、name、salary我们都可以直接调试, 以age为例：
+对于可监控的age、name、salary我们都可以直接调试, 以**test**的**age**属性为例，默认为**5**，我们将其修改为**25**：
 
 ![watch enabled property](./img/screenshots/watchPropDebugger.png "watch enabled property")
 
-输入需要的值回车之后，age自动更新:
+**age**属性设置值**25**回车之后，**age**自动更新:
 
 ![watch enabled property debugger result](./img/screenshots/watchPropDebugResult.png "watch enabled property debugger result")
 
-如果需要调用VM的方法进行调试，可以点击对应的**function name**，就可以在console控制台下看到对应方法的实现，并且该方法可在console控制台下通过**$f**引用，执行$f()即执行对应的方法
+如果需要调用VM的方法进行调试，只需点击对应的**function name**，就可以在**console**控制台下看到对应方法的**实现**，并且该方法可在console控制台下通过**$f**引用，调用**$f()**即执行对应的方法
 
-以上面定义的test VM的setSalary方法为例，点击setSalary后console控制台的显示如下：
+以上面定义的**test VM**的**setSalary**方法为例，点击**setSalary**后console控制台的显示如下：
 
 ![function debugger](./img/screenshots/funcDebug.png "function debugger")
 
-调用**$f**方法，同时传入5000来修改salary，并查看页面salary的变化
+调用**$f**方法，同时传入**5000**来修改**salary**，可以看到页面**salary**的变化：
 
 ![function debugger result](./img/screenshots/funcDebuggerResult.png "function debugger result")
 
@@ -86,5 +86,7 @@
 ### 最后的说明
 
 如果程序内容修改了VM的属性或者页面上的操作(绑定ms
--duplex)更新了VM的属性,Avalon panel中vmodel区域展示的内容可能**过旧**，这时只需要重新VM tree区域对应的VM即可得到更新后的数据
+-duplex)更新了VM的属性,Avalon panel中vmodel区域展示的内容可能**过旧**，这时只需要再次点击VM tree区域对应的VM即可得到**更新后的数据**
+
+截图中的**[demo.html](./demo.html)**页面在avalon debugger中有提供，可以直接从debugger的解压目录中打开此测试页面进行上述测试
 
