@@ -14,27 +14,27 @@
 
 将解压的**avalon debugger**目录文件拖放到扩展程序页即可完成安装
 
-<img width="100%" src="./img/screenshots/avalonInstall.png" title="avalon install screenshots" alt="avalon install screenshots"/>
+<img src="./img/screenshots/avalonInstall.png" title="avalon install screenshots" alt="avalon install screenshots"/>
 
 ## 使用
 
 成功安装**avalon debugger**之后，打开一个使用avalon的页面，**F12**打开chrome的调试控制台找到**Avalon**
 
-<img width="100%" src="./img/screenshots/avalonDebugger.png" title="avalon debugger tab" alt="avalon debugger tab"/>
+<img src="./img/screenshots/avalonDebugger.png" title="avalon debugger tab" alt="avalon debugger tab"/>
 
 切换到Avalon panel，提示我们开启avalon调试，**点击链接开启avalon调试功能**
 
-<img width="100%" src="./img/screenshots/avalonPanel.png" title="avalon panel" alt="avalon panel"/>
+<img src="./img/screenshots/avalonPanel.png" title="avalon panel" alt="avalon panel"/>
 
 开启调试之后会将页面上的VM controller按其嵌套关系展现在Avalon panel中的**VM tree**区域，可以展开、收起嵌套较深的VM
 
 **注:** 每个VM面板的header部分代表对应VM的id，可以通过**avalon.vmodels[id]**获取对应的Vmodel 
 
-<img width="100%" src="./img/screenshots/avalonVMTree.png" title="avalon VM tree" alt="avalon VM tree"/>
+<img src="./img/screenshots/avalonVMTree.png" title="avalon VM tree" alt="avalon VM tree"/>
 
 鼠标**悬停**在对应的VM上时页面上会标出其作用的**DOM范围**
 
-<img width="100%" src="./img/screenshots/avalonVMScope.png" title="avalon VM scope" alt="avalon VM scope"/>
+<img src="./img/screenshots/avalonVMScope.png" title="avalon VM scope" alt="avalon VM scope"/>
 
 点击对应的VM会在Avalon panel右侧的**vmodel**区域展示对应VM具有的数据结构，其中不可监控的数据属性用**删除线**标志，可监控的number、boolean、string类型属性可**直接调试**，且不同的数据类型通过不同的**color**和**icon**标志
 
@@ -61,25 +61,25 @@
 
 可见其中**$job**和**defaultSalary**是不可监控属性：
 
-<img width="100%" src="./img/screenshots/unwatchProperty.png" title="unwatch property" alt="unwatch property"/>
+<img src="./img/screenshots/unwatchProperty.png" title="unwatch property" alt="unwatch property"/>
 
 对于可监控的age、name、salary我们都可以直接调试, 以**test**的**age**属性为例，默认为**5**，我们将其修改为**25**：
 
-<img width="100%" src="./img/screenshots/watchPropDebugger.png" title="watch enabled property" alt="watch enabled property"/>
+<img src="./img/screenshots/watchPropDebugger.png" title="watch enabled property" alt="watch enabled property"/>
 
 **age**属性设置值**25**回车之后，**age**自动更新:
 
-<img width="100%" src="./img/screenshots/watchPropDebugResult.png" title="watch enabled property debugger result" alt="watch enabled property debugger result"/>
+<img src="./img/screenshots/watchPropDebugResult.png" title="watch enabled property debugger result" alt="watch enabled property debugger result"/>
 
 如果需要调用VM的方法进行调试，只需点击对应的**function name**，就可以在**console**控制台下看到对应方法的**实现**，并且该方法可在console控制台下通过**$f**引用，调用**$f()**即执行对应的方法
 
 以上面定义的**test VM**的**setSalary**方法为例，点击**setSalary**后console控制台的显示如下：
 
-<img width="100%" src="./img/screenshots/funcDebug.png" title="function debugger" alt="function debugger"/>
+<img src="./img/screenshots/funcDebug.png" title="function debugger" alt="function debugger"/>
 
 调用**$f**方法，同时传入**5000**来修改**salary**，可以看到页面**salary**的变化：
 
-<img width="100%" src="./img/screenshots/funcDebuggerResult.png" title="function debugger result" alt="function debugger result"/>
+<img src="./img/screenshots/funcDebuggerResult.png" title="function debugger result" alt="function debugger result"/>
 
 如果不确定Avalon panel中vmodel展示的信息是否正确，可以根据VM tree区域展示的VM id手动在console控制台调用avalon.vmodels[id]来查看VM
 
