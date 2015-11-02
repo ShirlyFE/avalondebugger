@@ -111,7 +111,7 @@
         return displayObj
     }
     function sendMessage (message, messageType) {
-        eventProxyElement.innerText = JSON.stringify({name: messageType, val: message})
+        eventProxyElement.innerText = JSON.stringify({name: messageType, val: message})  //自定义事件是可以添加自定义数据的，只是要求数据是字符串，所以这里也可以将数据附在customEvent上
         eventProxyElement.dispatchEvent(customEvent)
     }
     function getControllerEles() {
